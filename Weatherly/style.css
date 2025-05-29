@@ -91,3 +91,13 @@ button {
   box-shadow: 0 8px 16px rgba(255 255 255 / 0.3);
   cursor: pointer;
 }
+
+body.light-mode {
+  background: #f0f0f0;
+  color: #222;
+}
+body.dark-mode {
+  background: #222;
+  color: #f0f0f0;
+}
+

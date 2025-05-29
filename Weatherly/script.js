@@ -237,3 +237,19 @@ window.onload = () => {
     );
   }
 };
+
+const toggleBtn = document.getElementById("themeToggle");
+
+toggleBtn.addEventListener("click", () => {
+  document.body.classList.toggle("dark-mode");
+  document.body.classList.toggle("light-mode");
+  localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+});
+
+// Load saved theme
+window.addEventListener("load", () => {
+  const savedTheme = localStorage.getItem("theme") || "light";
+  document.body.classList.add(`${savedTheme}-mode`);
+});
+
+
