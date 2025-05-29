@@ -252,4 +252,21 @@ window.addEventListener("load", () => {
   document.body.classList.add(`${savedTheme}-mode`);
 });
 
+function drawTempChart(temps) {
+  const canvas = document.getElementById("tempChart");
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = "red";
+  ctx.beginPath();
+
+  temps.forEach((temp, i) => {
+    const x = i * (canvas.width / (temps.length - 1));
+    const y = canvas.height - (temp - Math.min(...temps)) * 5;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+
+  ctx.stroke();
+}
 

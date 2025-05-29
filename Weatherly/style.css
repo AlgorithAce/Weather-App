@@ -101,3 +101,15 @@ body.dark-mode {
   color: #f0f0f0;
 }
 
+#tempChart {
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  background: #fff;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  margin: 20px auto;
+  display: block;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
