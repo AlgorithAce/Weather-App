@@ -34,7 +34,7 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone  https://github.com/deepak-s-git/Weatherly.git
+git clone 
 cd Weatherly
 ```
 
