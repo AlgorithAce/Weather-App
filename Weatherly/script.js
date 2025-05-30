@@ -237,3 +237,36 @@ window.onload = () => {
     );
   }
 };
+
+const toggleBtn = document.getElementById("themeToggle");
+
+toggleBtn.addEventListener("click", () => {
+  document.body.classList.toggle("dark-mode");
+  document.body.classList.toggle("light-mode");
+  localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+});
+
+// Load saved theme
+window.addEventListener("load", () => {
+  const savedTheme = localStorage.getItem("theme") || "light";
+  document.body.classList.add(`${savedTheme}-mode`);
+});
+
+function drawTempChart(temps) {
+  const canvas = document.getElementById("tempChart");
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = "red";
+  ctx.beginPath();
+
+  temps.forEach((temp, i) => {
+    const x = i * (canvas.width / (temps.length - 1));
+    const y = canvas.height - (temp - Math.min(...temps)) * 5;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+
+  ctx.stroke();
+}
+
