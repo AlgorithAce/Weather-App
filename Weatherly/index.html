@@ -39,7 +39,7 @@
     }
 
     .fade-in {
-      animation: fadeIn 0.5s ease-in-out;
+      animation: fadeIn 0.5s ease-in-out forwards;
     }
 
     @keyframes fadeIn {
@@ -47,6 +47,7 @@
         opacity: 0;
         transform: translateY(10px);
       }
+
       100% {
         opacity: 1;
         transform: translateY(0);
@@ -65,6 +66,7 @@
       color: white;
       font-weight: 600;
       transition: background 0.3s;
+      user-select: none;
     }
 
     .light .theme-toggle {
@@ -77,17 +79,18 @@
 <body>
   <div class="flex justify-center items-center gap-4 mb-4">
     <!-- Sun -->
-    <svg class="w-12 h-12 text-yellow-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-      <path d="M10 3.5a.5.5 0 01.5.5v1a.5.5 0 01-1 0v-1a.5.5 0 01.5-.5zm5.657 1.636a.5.5 0 01.707.707l-.707.707a.5.5 0 11-.707-.707l.707-.707zM16.5 10a.5.5 0 01.5.5h1a.5.5 0 010 1h-1a.5.5 0 01-.5-.5zm-1.636 5.657a.5.5 0 01.707 0l.707.707a.5.5 0 11-.707.707l-.707-.707a.5.5 0 010-.707zM10 16.5a.5.5 0 01.5.5v1a.5.5 0 01-1 0v-1a.5.5 0 01.5-.5zM4.343 15.657a.5.5 0 01.707 0l.707.707a.5.5 0 11-.707.707l-.707-.707a.5.5 0 010-.707zM3.5 10a.5.5 0 01.5-.5h1a.5.5 0 010 1h-1a.5.5 0 01-.5-.5zM5 5a.5.5 0 01.707 0l.707.707a.5.5 0 11-.707.707L5 5.707A.5.5 0 015 5zM10 6a4 4 0 100 8 4 4 0 000-8z"/>
+    <svg class="w-12 h-12 text-yellow-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+      <path
+        d="M10 3.5a.5.5 0 01.5.5v1a.5.5 0 01-1 0v-1a.5.5 0 01.5-.5zm5.657 1.636a.5.5 0 01.707.707l-.707.707a.5.5 0 11-.707-.707l.707-.707zM16.5 10a.5.5 0 01.5.5h1a.5.5 0 010 1h-1a.5.5 0 01-.5-.5zm-1.636 5.657a.5.5 0 01.707 0l.707.707a.5.5 0 11-.707.707l-.707-.707a.5.5 0 010-.707zM10 16.5a.5.5 0 01.5.5v1a.5.5 0 01-1 0v-1a.5.5 0 01.5-.5zM4.343 15.657a.5.5 0 01.707 0l.707.707a.5.5 0 11-.707.707l-.707-.707a.5.5 0 010-.707zM3.5 10a.5.5 0 01.5-.5h1a.5.5 0 010 1h-1a.5.5 0 01-.5-.5zM5 5a.5.5 0 01.707 0l.707.707a.5.5 0 11-.707.707L5 5.707A.5.5 0 015 5zM10 6a4 4 0 100 8 4 4 0 000-8z" />
     </svg>
 
     <!-- Cloud -->
-    <svg class="w-12 h-12 text-white opacity-70 animate-bounce" fill="currentColor" viewBox="0 0 20 20">
+    <svg class="w-12 h-12 text-white opacity-70 animate-bounce" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
       <path d="M4 10a4 4 0 014-4 4 4 0 017.9.6 5.002 5.002 0 01.1 9.9H6a4 4 0 01-2-7.5z" />
     </svg>
   </div>
 
-  <div class="theme-toggle" onclick="toggleTheme()">Toggle Theme</div>
+  <div class="theme-toggle" onclick="toggleTheme()" role="button" tabindex="0" aria-label="Toggle theme">Toggle Theme</div>
 
   <div class="max-w-3xl mx-auto p-6">
     <div class="text-center mb-6">
@@ -101,9 +104,9 @@
     <!-- Search Box -->
     <div class="flex items-center gap-2 mb-6">
       <input id="cityInput" type="text" placeholder="Enter city..."
-        class="flex-1 p-3 rounded-xl bg-slate-800 text-white placeholder-slate-400" />
+        class="flex-1 p-3 rounded-xl bg-slate-800 text-white placeholder-slate-400" aria-label="City input" />
       <button onclick="getWeatherByCity()"
-        class="bg-indigo-600 px-4 py-3 rounded-xl font-medium hover:bg-indigo-700">Search</button>
+        class="bg-indigo-600 px-4 py-3 rounded-xl font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">Search</button>
     </div>
 
     <div id="currentWeather" class="glass p-6 rounded-2xl mb-6 text-center opacity-0">
@@ -114,7 +117,8 @@
       <p id="highLow" class="text-sm"></p>
     </div>
 
-    <div class="glass p-4 rounded-xl mb-6 grid grid-cols-2 gap-4 text-sm bg-white/10 border border-white/20">
+    <div
+      class="glass p-4 rounded-xl mb-6 grid grid-cols-2 gap-4 text-sm bg-white/10 border border-white/20">
       <div><strong>Humidity:</strong> <span id="humidity"></span></div>
       <div><strong>Wind:</strong> <span id="wind"></span></div>
       <div><strong>Visibility:</strong> <span id="visibility"></span></div>
@@ -138,8 +142,33 @@
   </div>
 
   <script>
+    // Theme toggle with localStorage persistence
     function toggleTheme() {
-      document.body.classList.toggle('light');
+      const body = document.body;
+      body.classList.toggle('light');
+      if (body.classList.contains('light')) {
+        localStorage.setItem('theme', 'light');
+      } else {
+        localStorage.setItem('theme', 'dark');
+      }
+    }
+
+    // Load theme from localStorage on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'light') {
+        document.body.classList.add('light');
+      } else {
+        document.body.classList.remove('light');
+      }
+    });
+
+    // Example function to show currentWeather with fade-in
+    function showCurrentWeather() {
+      const currentWeather = document.getElementById('currentWeather');
+      currentWeather.style.opacity = '0';
+      currentWeather.classList.add('fade-in');
+      currentWeather.style.opacity = '1';
     }
   </script>
   <script src="script.js"></script>
