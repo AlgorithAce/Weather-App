@@ -1,4 +1,4 @@
-i<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -8,19 +8,34 @@ i<!DOCTYPE html>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet" />
   <style>
+    :root {
+      --bg-dark: linear-gradient(to bottom right, #0f172a, #1e293b, #111827);
+      --bg-light: linear-gradient(to bottom right, #cbd5e1, #f8fafc, #e2e8f0);
+    }
+
     body {
       font-family: 'Outfit', sans-serif;
-      transition: background 0.5s ease-in-out;
-      background: linear-gradient(to bottom right, #0f172a, #1e293b, #111827);
+      transition: background 0.5s ease-in-out, color 0.5s ease-in-out;
+      background: var(--bg-dark);
+      color: white;
+    }
+
+    body.light {
+      background: var(--bg-light);
+      color: #1e293b;
     }
 
     .glass {
-      background: rgba(255 255 255 / 0.1);
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 1rem;
       backdrop-filter: blur(10px);
-      box-shadow: 0 4px 30px rgba(0 0 0 / 0.1);
-      color: white;
-      transition: background 0.5s ease-in-out;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      transition: background 0.5s ease-in-out, color 0.5s ease-in-out;
+    }
+
+    .light .glass {
+      background: rgba(255, 255, 255, 0.4);
+      color: #1e293b;
     }
 
     .fade-in {
@@ -32,25 +47,56 @@ i<!DOCTYPE html>
         opacity: 0;
         transform: translateY(10px);
       }
-
       100% {
         opacity: 1;
         transform: translateY(0);
       }
     }
+
+    .theme-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(6px);
+      border-radius: 9999px;
+      color: white;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .light .theme-toggle {
+      background: rgba(0, 0, 0, 0.1);
+      color: #1e293b;
+    }
   </style>
 </head>
 
 <body>
+  <div class="flex justify-center items-center gap-4 mb-4">
+    <!-- Sun -->
+    <svg class="w-12 h-12 text-yellow-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M10 3.5a.5.5 0 01.5.5v1a.5.5 0 01-1 0v-1a.5.5 0 01.5-.5zm5.657 1.636a.5.5 0 01.707.707l-.707.707a.5.5 0 11-.707-.707l.707-.707zM16.5 10a.5.5 0 01.5.5h1a.5.5 0 010 1h-1a.5.5 0 01-.5-.5zm-1.636 5.657a.5.5 0 01.707 0l.707.707a.5.5 0 11-.707.707l-.707-.707a.5.5 0 010-.707zM10 16.5a.5.5 0 01.5.5v1a.5.5 0 01-1 0v-1a.5.5 0 01.5-.5zM4.343 15.657a.5.5 0 01.707 0l.707.707a.5.5 0 11-.707.707l-.707-.707a.5.5 0 010-.707zM3.5 10a.5.5 0 01.5-.5h1a.5.5 0 010 1h-1a.5.5 0 01-.5-.5zM5 5a.5.5 0 01.707 0l.707.707a.5.5 0 11-.707.707L5 5.707A.5.5 0 015 5zM10 6a4 4 0 100 8 4 4 0 000-8z"/>
+    </svg>
+
+    <!-- Cloud -->
+    <svg class="w-12 h-12 text-white opacity-70 animate-bounce" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M4 10a4 4 0 014-4 4 4 0 017.9.6 5.002 5.002 0 01.1 9.9H6a4 4 0 01-2-7.5z" />
+    </svg>
+  </div>
+
+  <div class="theme-toggle" onclick="toggleTheme()">Toggle Theme</div>
+
   <div class="max-w-3xl mx-auto p-6">
     <div class="text-center mb-6">
       <h1 class="text-3xl font-semibold">Weatherly</h1>
       <p class="text-sm text-slate-400">Real-Time Forecast</p>
     </div>
 
-<button id="themeToggle">Toggle Theme</button>
-<canvas id="tempChart" width="400" height="200"></canvas>
-
+    <!-- Optional Temperature Chart -->
+    <canvas id="tempChart" width="400" height="200" class="mb-6 w-full max-w-xl mx-auto hidden"></canvas>
 
     <!-- Search Box -->
     <div class="flex items-center gap-2 mb-6">
@@ -60,7 +106,6 @@ i<!DOCTYPE html>
         class="bg-indigo-600 px-4 py-3 rounded-xl font-medium hover:bg-indigo-700">Search</button>
     </div>
 
-    <!-- Current Weather Card -->
     <div id="currentWeather" class="glass p-6 rounded-2xl mb-6 text-center opacity-0">
       <h2 id="cityName" class="text-2xl font-semibold mb-1"></h2>
       <div id="temperature" class="text-5xl font-bold"></div>
@@ -69,17 +114,14 @@ i<!DOCTYPE html>
       <p id="highLow" class="text-sm"></p>
     </div>
 
-    <!-- Details Panel -->
-    <div
-      class="glass p-4 rounded-xl mb-6 grid grid-cols-2 gap-4 text-sm text-white bg-white/10 border border-white/20">
+    <div class="glass p-4 rounded-xl mb-6 grid grid-cols-2 gap-4 text-sm bg-white/10 border border-white/20">
       <div><strong>Humidity:</strong> <span id="humidity"></span></div>
       <div><strong>Wind:</strong> <span id="wind"></span></div>
       <div><strong>Visibility:</strong> <span id="visibility"></span></div>
       <div><strong>Pressure:</strong> <span id="pressure"></span></div>
     </div>
 
-    <!-- AQI -->
-    <div id="airQuality" class="glass p-6 rounded-xl text-white">
+    <div id="airQuality" class="glass p-6 rounded-xl">
       <h3 class="text-xl font-semibold mb-3">Air Quality Index (AQI):</h3>
       <p><span id="aqi" class="font-bold text-lg">--</span></p>
       <p>PM2.5: <span id="pm25">--</span></p>
@@ -88,15 +130,18 @@ i<!DOCTYPE html>
       <p>SO2: <span id="so2">--</span></p>
     </div>
 
-
-    <!-- Sunrise & Sunset -->
-    <div class="glass p-4 rounded-xl text-sm text-white bg-white/10 border border-white/20">
+    <div class="glass p-4 rounded-xl text-sm mt-6 bg-white/10 border border-white/20">
       <h3 class="font-semibold mb-2">Sunrise & Sunset</h3>
       <p><strong>Sunrise:</strong> <span id="sunrise"></span></p>
       <p><strong>Sunset:</strong> <span id="sunset"></span></p>
     </div>
   </div>
 
+  <script>
+    function toggleTheme() {
+      document.body.classList.toggle('light');
+    }
+  </script>
   <script src="script.js"></script>
 </body>
 
