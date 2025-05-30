@@ -1,272 +1,169 @@
-const apiKey = 'YOUR_API_KEY_HERE'; // Replace with your OpenWeatherMap API key
+<!DOCTYPE html>
+<html lang="en">
 
-async function getWeatherByCity() {
-  const city = document.getElementById('cityInput').value.trim();
-  if (!city) return alert('Please enter a city name');
-  await fetchWeather(city);
-}
-
-async function fetchWeather(city) {
-  try {
-    const weatherRes = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`
-    );
-    const weatherData = await weatherRes.json();
-
-    if (weatherData.cod !== 200) {
-      alert('City not found');
-      return;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Weather Luxe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-dark: linear-gradient(to bottom right, #0f172a, #1e293b, #111827);
+      --bg-light: linear-gradient(to bottom right, #cbd5e1, #f8fafc, #e2e8f0);
     }
 
-    updateWeatherUI(weatherData);
-
-    // Fetch forecast & air quality by lat/lon
-    const { lat, lon } = weatherData.coord;
-    await fetchForecast(lat, lon);
-    await fetchAirQuality(lat, lon);
-  } catch (error) {
-    console.error('Error fetching weather:', error);
-  }
-}
-
-function updateWeatherUI(data) {
-  document.getElementById('cityName').textContent = data.name;
-  document.getElementById('temperature').textContent = `${Math.round(data.main.temp)}°C`;
-  document.getElementById('condition').textContent = data.weather[0].description;
-  document.getElementById('feelsLike').textContent = `Feels like ${Math.round(data.main.feels_like)}°C`;
-  document.getElementById('highLow').textContent = `${Math.round(data.main.temp_min)}° ~ ${Math.round(data.main.temp_max)}°`;
-
-  document.getElementById('humidity').textContent = `${data.main.humidity}%`;
-  document.getElementById('wind').textContent = `${data.wind.speed} m/s, ${degToCompass(data.wind.deg)}`;
-  document.getElementById('visibility').textContent = `${(data.visibility / 1000).toFixed(1)} km`;
-  document.getElementById('pressure').textContent = `${data.main.pressure} hPa`;
-
-  const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const sunset = new Date(data.sys.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  document.getElementById('sunrise').textContent = sunrise;
-  document.getElementById('sunset').textContent = sunset;
-
-  // Show current weather card with fade-in
-  const currentWeather = document.getElementById('currentWeather');
-  currentWeather.classList.add('fade-in');
-  currentWeather.style.opacity = 1;
-
-  // Set dynamic background based on weather
-  setBackground(data.weather[0].main);
-}
-
-async function fetchForecast(lat, lon) {
-  try {
-    const forecastRes = await fetch(
-      `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,alerts,current&appid=${apiKey}&units=metric`
-    );
-    const forecastData = await forecastRes.json();
-
-    updateHourlyForecast(forecastData.hourly.slice(0, 12));
-    updateWeeklyForecast(forecastData.daily.slice(0, 7));
-  } catch (error) {
-    console.error('Error fetching forecast:', error);
-  }
-}
-
-function updateHourlyForecast(hourly) {
-  const container = document.getElementById('hourlyForecast');
-  container.innerHTML = '';
-  hourly.forEach(hour => {
-    const time = new Date(hour.dt * 1000).getHours();
-    const hourDiv = document.createElement('div');
-    hourDiv.className =
-      'glass min-w-[100px] text-center p-3 rounded-xl flex flex-col items-center transition-transform duration-300 hover:scale-110 hover:shadow-lg cursor-pointer';
-    hourDiv.innerHTML = `
-      <p class="text-sm">${time}:00</p>
-      <img src="https://openweathermap.org/img/wn/${hour.weather[0].icon}@2x.png" alt="${hour.weather[0].description}" class="w-12 h-12" />
-      <p class="text-md font-semibold">${Math.round(hour.temp)}°C</p>
-      <p class="text-xs mt-1">Wind: ${hour.wind_speed.toFixed(1)} m/s ${degToCompass(hour.wind_deg)}</p>
-      <p class="text-xs">UV: ${hour.uvi.toFixed(1)}</p>
-    `;
-    container.appendChild(hourDiv);
-  });
-}
-
-function updateWeeklyForecast(daily) {
-  const container = document.getElementById('weeklyForecast');
-  container.innerHTML = '';
-  daily.forEach(day => {
-    const date = new Date(day.dt * 1000);
-    const weekday = date.toLocaleDateString(undefined, { weekday: 'short' });
-    const dayDiv = document.createElement('div');
-    dayDiv.className =
-      'glass text-center p-4 rounded-xl transition-transform duration-300 hover:scale-105 hover:shadow-lg cursor-pointer';
-    dayDiv.innerHTML = `
-      <p class="text-sm">${weekday}</p>
-      <img src="https://openweathermap.org/img/wn/${day.weather[0].icon}@2x.png" alt="${day.weather[0].description}" class="w-12 h-12 mx-auto" />
-      <p class="text-sm">${Math.round(day.temp.min)}° ~ ${Math.round(day.temp.max)}°</p>
-      <p class="text-xs">Rain: ${Math.round((day.pop || 0) * 100)}%</p>
-    `;
-    container.appendChild(dayDiv);
-  });
-}
-
-// Fetch air quality info separately
-async function fetchAirQuality(lat, lon) {
-  try {
-    const aqiRes = await fetch(
-      `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`
-    );
-    const aqiData = await aqiRes.json();
-
-    if (!aqiData.list || !aqiData.list.length) {
-      console.warn('No AQI data available');
-      return;
+    body {
+      font-family: 'Outfit', sans-serif;
+      transition: background 0.5s ease-in-out, color 0.5s ease-in-out;
+      background: var(--bg-dark);
+      color: white;
+      min-height: 100vh;
+      margin: 0;
     }
 
-    const aqi = aqiData.list[0];
-    const aqiIndex = aqi.main.aqi;
+    body.light {
+      background: var(--bg-light);
+      color: #1e293b;
+    }
 
-    document.getElementById('aqi').textContent = aqiIndexToText(aqiIndex);
-    document.getElementById('pm25').textContent = aqi.components.pm2_5 + ' µg/m³';
-    document.getElementById('pm10').textContent = aqi.components.pm10 + ' µg/m³';
-    document.getElementById('co').textContent = aqi.components.co + ' µg/m³';
-    document.getElementById('so2').textContent = aqi.components.so2 + ' µg/m³';
+    .glass {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      transition: background 0.5s ease-in-out, color 0.5s ease-in-out;
+    }
 
-    // Set AQI color (background) dynamically
-    const aqiBox = document.getElementById('aqi').parentElement;
-    aqiBox.style.color = aqiColor(aqiIndex);
-  } catch (error) {
-    console.error('Error fetching air quality:', error);
-  }
-}
+    .light .glass {
+      background: rgba(255, 255, 255, 0.4);
+      color: #1e293b;
+    }
 
-function aqiIndexToText(aqi) {
-  switch (aqi) {
-    case 1:
-      return 'Good';
-    case 2:
-      return 'Fair';
-    case 3:
-      return 'Moderate';
-    case 4:
-      return 'Poor';
-    case 5:
-      return 'Very Poor';
-    default:
-      return 'Unknown';
-  }
-}
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
 
-function aqiColor(aqi) {
-  switch (aqi) {
-    case 1:
-      return '#10B981'; // Green
-    case 2:
-      return '#FBBF24'; // Yellow
-    case 3:
-      return '#F97316'; // Orange
-    case 4:
-      return '#EF4444'; // Red
-    case 5:
-      return '#B91C1C'; // Dark Red
-    default:
-      return '#9CA3AF'; // Gray
-  }
-}
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(10px);
+      }
 
-function degToCompass(num) {
-  const val = Math.floor((num / 22.5) + 0.5);
-  const arr = [
-    "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-    "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"
-  ];
-  return arr[(val % 16)];
-}
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-function setBackground(weatherMain) {
-  const body = document.body;
-  body.style.transition = 'background 1s ease-in-out';
+    .theme-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(6px);
+      border-radius: 9999px;
+      color: white;
+      font-weight: 600;
+      transition: background 0.3s;
+      user-select: none;
+      z-index: 10;
+    }
 
-  switch (weatherMain.toLowerCase()) {
-    case 'clear':
-      body.style.background = 'linear-gradient(to bottom right, #fceabb, #f8b500)';
-      break;
-    case 'clouds':
-      body.style.background = 'linear-gradient(to bottom right, #667eea, #764ba2)';
-      break;
-    case 'rain':
-    case 'drizzle':
-      body.style.background = 'linear-gradient(to bottom right, #3a7bd5, #3a6073)';
-      break;
-    case 'thunderstorm':
-      body.style.background = 'linear-gradient(to bottom right, #0f2027, #203a43, #2c5364)';
-      break;
-    case 'snow':
-      body.style.background = 'linear-gradient(to bottom right, #83a4d4, #b6fbff)';
-      break;
-    case 'mist':
-    case 'fog':
-    case 'haze':
-      body.style.background = 'linear-gradient(to bottom right, #757f9a, #d7dde8)';
-      break;
-    default:
-      body.style.background = 'linear-gradient(to bottom right, #0f172a, #1e293b, #111827)';
-      break;
-  }
-}
+    .light .theme-toggle {
+      background: rgba(0, 0, 0, 0.1);
+      color: #1e293b;
+    }
 
-document.getElementById('cityInput').addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    getWeatherByCity();
-  }
-});
+    /* Forecast containers styling */
+    #hourlyForecast,
+    #weeklyForecast {
+      display: flex;
+      overflow-x: auto;
+      gap: 1rem;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
 
-document.getElementById('searchBtn').addEventListener('click', getWeatherByCity);
+    #hourlyForecast > div,
+    #weeklyForecast > div {
+      flex-shrink: 0;
+    }
 
-// On load, try geolocation:
-window.onload = () => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      async position => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`);
-        const data = await res.json();
-        updateWeatherUI(data);
-        await fetchForecast(lat, lon);
-        await fetchAirQuality(lat, lon);
-      },
-      () => alert('Geolocation permission denied. Please search city manually.')
-    );
-  }
-};
+    /* Scrollbar styling */
+    #hourlyForecast::-webkit-scrollbar,
+    #weeklyForecast::-webkit-scrollbar {
+      height: 8px;
+    }
 
-const toggleBtn = document.getElementById("themeToggle");
+    #hourlyForecast::-webkit-scrollbar-thumb,
+    #weeklyForecast::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+    }
+  </style>
+</head>
 
-toggleBtn.addEventListener("click", () => {
-  document.body.classList.toggle("dark-mode");
-  document.body.classList.toggle("light-mode");
-  localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
-});
+<body>
+  <div class="flex justify-center items-center gap-4 mb-4 mt-8">
+    <!-- Sun -->
+    <svg class="w-12 h-12 text-yellow-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+      <path
+        d="M10 3.5a.5.5 0 01.5.5v1a.5.5 0 01-1 0v-1a.5.5 0 01.5-.5zm5.657 1.636a.5.5 0 01.707.707l-.707.707a.5.5 0 11-.707-.707l.707-.707zM16.5 10a.5.5 0 01.5.5h1a.5.5 0 010 1h-1a.5.5 0 01-.5-.5zm-1.636 5.657a.5.5 0 01.707 0l.707.707a.5.5 0 11-.707.707l-.707-.707a.5.5 0 010-.707zM10 16.5a.5.5 0 01.5.5v1a.5.5 0 01-1 0v-1a.5.5 0 01.5-.5zM4.343 15.657a.5.5 0 01.707 0l.707.707a.5.5 0 11-.707.707l-.707-.707a.5.5 0 010-.707zM3.5 10a.5.5 0 01.5-.5h1a.5.5 0 010 1h-1a.5.5 0 01-.5-.5zM5 5a.5.5 0 01.707 0l.707.707a.5.5 0 11-.707.707L5 5.707A.5.5 0 015 5zM10 6a4 4 0 100 8 4 4 0 000-8z" />
+    </svg>
 
-// Load saved theme
-window.addEventListener("load", () => {
-  const savedTheme = localStorage.getItem("theme") || "light";
-  document.body.classList.add(`${savedTheme}-mode`);
-});
+    <!-- Cloud -->
+    <svg class="w-12 h-12 text-white opacity-70 animate-bounce" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M4 10a4 4 0 014-4 4 4 0 017.9.6 5.002 5.002 0 01.1 9.9H6a4 4 0 01-2-7.5z" />
+    </svg>
+  </div>
 
-function drawTempChart(temps) {
-  const canvas = document.getElementById("tempChart");
-  const ctx = canvas.getContext("2d");
+  <!-- Theme toggle -->
+  <div id="themeToggle" class="theme-toggle">Toggle Theme</div>
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = "red";
-  ctx.beginPath();
+  <div class="max-w-3xl mx-auto p-6">
+    <div class="text-center mb-6">
+      <h1 class="text-3xl font-semibold">Weatherly</h1>
+      <p class="text-sm text-slate-400">Real-Time Forecast</p>
+    </div>
 
-  temps.forEach((temp, i) => {
-    const x = i * (canvas.width / (temps.length - 1));
-    const y = canvas.height - (temp - Math.min(...temps)) * 5;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
+    <!-- Temperature Chart -->
+    <canvas id="tempChart" width="400" height="200" class="mb-6 w-full max-w-xl mx-auto hidden"></canvas>
 
-  ctx.stroke();
-}
+    <!-- Search Box -->
+    <div class="flex items-center gap-2 mb-6">
+      <input id="cityInput" type="text" placeholder="Enter city..."
+        class="flex-1 p-3 rounded-xl bg-slate-800 text-white placeholder-slate-400" />
+      <button id="searchBtn" onclick="getWeatherByCity()"
+        class="bg-indigo-600 px-4 py-3 rounded-xl font-medium hover:bg-indigo-700">Search</button>
+    </div>
 
+    <div id="currentWeather" class="glass p-6 rounded-2xl mb-6 text-center opacity-0">
+      <h2 id="cityName" class="text-2xl font-semibold mb-1"></h2>
+      <div id="temperature" class="text-5xl font-bold"></div>
+      <div id="condition" class="text-md text-slate-300 capitalize"></div>
+      <p id="feelsLike" class="text-sm mt-2"></p>
+      <p id="highLow" class="text-sm"></p>
+    </div>
+
+    <div
+      class="glass p-4 rounded-xl mb-6 grid grid-cols-2 gap-4 text-sm bg-white/10 border border-white/20">
+      <div><strong>Humidity:</strong> <span id="humidity"></span></div>
+      <div><strong>Wind:</strong> <span id="wind"></span></div>
+      <div><strong>Visibility:</strong> <span id="visibility"></span></div>
+      <div><strong>Pressure:</strong> <span id="pressure"></span></div>
+    </div>
+
+    <!-- Hourly Forecast -->
+    <div id="hourlyForecast" aria-label="Hourly Forecast"></div>
+
+    <!-- Weekly Forecast -->
+    <div id="weeklyForecast" aria-label="Weekly Forecast"></div>
+
+    <div id="airQuality" class="glass p-6 rounded-xl">
+      <h3 class="text-xl font-semibold mb-3">Air Quality Index (AQI):</h3>
+      <p><span id="aqi" class="font-bold text-lg">--</span></p>
+      <p>PM2.5: <span id="pm25">--</span></p>
+      <p>PM10: <span id="pm
