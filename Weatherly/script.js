@@ -167,3 +167,47 @@
       <p><span id="aqi" class="font-bold text-lg">--</span></p>
       <p>PM2.5: <span id="pm25">--</span></p>
       <p>PM10: <span id="pm
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  async function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    const city = document.getElementById("cityName").textContent;
+    const temp = document.getElementById("temperature").textContent;
+    const cond = document.getElementById("condition").textContent;
+    const feels = document.getElementById("feelsLike").textContent;
+    const hiLow = document.getElementById("highLow").textContent;
+    const humidity = document.getElementById("humidity").textContent;
+    const wind = document.getElementById("wind").textContent;
+    const visibility = document.getElementById("visibility").textContent;
+    const pressure = document.getElementById("pressure").textContent;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("Weather Report", 80, 20);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    let y = 40;
+    const lines = [
+      `City: ${city}`,
+      `Temperature: ${temp}`,
+      `Condition: ${cond}`,
+      `${feels}`,
+      `${hiLow}`,
+      `Humidity: ${humidity}`,
+      `Wind: ${wind}`,
+      `Visibility: ${visibility}`,
+      `Pressure: ${pressure}`
+    ];
+
+    lines.forEach(line => {
+      doc.text(line, 20, y);
+      y += 10;
+    });
+
+    doc.save(`Weather_Report_${city}.pdf`);
+  }
+</script>
